@@ -5,7 +5,6 @@ from matplotlib.figure import Figure
 
 from functions import *
 
-# Create main window
 root = Tk()
 root.title("Analiza i przetwarzanie dźwięku - Projekt 1 - cechy sygnału audio w dziedzinie czasu")
 root.geometry('1200x700')
@@ -15,11 +14,9 @@ audio_data = None
 func_nr = -1
 scroll_pos = 0
 
-# Create a menu bar
 menu = Menu(root)
 root.config(menu=menu)
 
-# Submenus
 upload_menu = Menu(menu, tearoff=0)
 upload_menu.add_command(label='Załaduj plik',
                         command=lambda: menu_function(fig1, canvas1, sl, 1, scrollbar, scrollbar2, slider2, slider3,
@@ -29,7 +26,6 @@ upload_menu.add_command(label='Odtwórz nagranie',
                                                       labelVSTD, canvas_widget2))
 menu.add_cascade(label='Plik', menu=upload_menu)
 
-# Submenus
 params_menu = Menu(menu, tearoff=0)
 params_menu.add_command(label='Głośność',
                         command=lambda: menu_function(fig2, canvas2, sl, 2, scrollbar, scrollbar2, slider2, slider3,
@@ -86,14 +82,12 @@ analiza_menu.add_command(label='Określenie fragmentów muzyka / mowa',
 
 menu.add_cascade(label='Analiza sygnału', menu=analiza_menu)
 
-# Tworzenie figury matplotlib
 fig1 = Figure(figsize=(11, 3), dpi=100)
 
 canvas1 = FigureCanvasTkAgg(fig1, master=root)
 canvas_widget1 = canvas1.get_tk_widget()
 canvas_widget1.grid(column=0, row=2, columnspan=11, rowspan=2, padx=10, pady=10)
 
-# Tworzenie figury matplotlib
 fig2 = Figure(figsize=(11, 3), dpi=100)
 canvas2 = FigureCanvasTkAgg(fig2, master=root)
 canvas_widget2 = canvas2.get_tk_widget()
