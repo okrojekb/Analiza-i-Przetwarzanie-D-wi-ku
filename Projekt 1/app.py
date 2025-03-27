@@ -25,7 +25,7 @@ upload_menu.add_command(label='Załaduj plik',
                         command=lambda: menu_function(fig1, canvas1, sl, 1, scrollbar, scrollbar2, slider2, slider3,
                                                       labelVSTD, canvas_widget2))
 upload_menu.add_command(label='Odtwórz nagranie',
-                        command=lambda: menu_function(fig1, canvas1, sl, 10, scrollbar, scrollbar2, slider2, slider3,
+                        command=lambda: menu_function(fig1, canvas1, sl, 11, scrollbar, scrollbar2, slider2, slider3,
                                                       labelVSTD, canvas_widget2))
 menu.add_cascade(label='Plik', menu=upload_menu)
 
@@ -52,7 +52,7 @@ params_menu.add_command(label='Częstotliwość tonu podstawowego F0 - z AMDF',
                         command=lambda: menu_function(fig2, canvas2, sl, 7, scrollbar, scrollbar2, slider2, slider3,
                                                       labelVSTD, canvas_widget2))
 
-menu.add_cascade(label='Parametry na poziomie klipu', menu=params_menu)
+menu.add_cascade(label='Parametry na poziomie ramki', menu=params_menu)
 
 clip_params_menu = Menu(menu, tearoff=0)
 
@@ -64,7 +64,27 @@ clip_params_menu.add_command(label='Bazujące na energii: LSTER, Energy Entropy'
                              command=lambda: menu_function(fig2, canvas2, sl, 9, scrollbar, scrollbar2, slider2,
                                                            slider3, labelVSTD, canvas_widget2))
 
-menu.add_cascade(label='Parametry na poziomie ramki', menu=clip_params_menu)
+clip_params_menu.add_command(label='Bazujące na ZCR: ZSTD, HZCRR',
+                             command=lambda: menu_function(fig2, canvas2, sl, 10, scrollbar, scrollbar2, slider2,
+                                                           slider3, labelVSTD, canvas_widget2))
+
+menu.add_cascade(label='Parametry na poziomie klipu', menu=clip_params_menu)
+
+analiza_menu = Menu(menu, tearoff=0)
+
+analiza_menu.add_command(label='Detekcja ciszy',
+                             command=lambda: menu_function(fig2, canvas2, sl, 12, scrollbar, scrollbar2, slider2,
+                                                           slider3, labelVSTD, canvas_widget2))
+
+analiza_menu.add_command(label='Określenie fragmentów dźwięcznych / bezdźwięcznych',
+                             command=lambda: menu_function(fig2, canvas2, sl, 13, scrollbar, scrollbar2, slider2,
+                                                           slider3, labelVSTD, canvas_widget2))
+
+analiza_menu.add_command(label='Określenie fragmentów muzyka / mowa',
+                             command=lambda: menu_function(fig2, canvas2, sl, 14, scrollbar, scrollbar2, slider2,
+                                                           slider3, labelVSTD, canvas_widget2))
+
+menu.add_cascade(label='Analiza sygnału', menu=analiza_menu)
 
 # Tworzenie figury matplotlib
 fig1 = Figure(figsize=(11, 3), dpi=100)
@@ -81,7 +101,7 @@ canvas_widget2.grid(column=0, row=6, columnspan=11, rowspan=2, padx=10, pady=10)
 
 slider2 = Scale(root, from_=0, to=10000, orient=VERTICAL, label="RMS level", length=300,
                 command=lambda value: slider_function(sl, fig2, canvas2, slider2, slider3, labelVSTD))
-slider2.set(0)
+slider2.set(5)
 slider2.grid(column=12, row=2, rowspan=2, padx=10, pady=10)
 slider2.grid_remove()
 
