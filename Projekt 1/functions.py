@@ -44,7 +44,6 @@ def menu_function(fig, canvas, slider, function_nr, scrollbar, scrollbar2, slide
             slider3.grid()
             SilentRatio(slider.get(), fig, canvas, slider2.get(), slider3.get())
         elif function_nr == 6:
-            # slider2.grid()
             calculate_f0_autocorrelation(slider.get(), fig, canvas)
         elif function_nr == 7:
             calculate_f0_AMDF(slider.get(), fig, canvas)
@@ -193,7 +192,6 @@ def calculate_STE_and_plot(frame_size, fig, canvas, start_idx=0, max_points=2000
     global func_nr
     func_nr = 3
 
-    # Wyznaczanie zakresu widocznych danych (start_idx do end_idx)
     end_idx = min(start_idx + max_points, len(audio_data))
     visible_audio = audio_data[start_idx:end_idx]
     visible_num_frames = len(visible_audio) // frame_size
