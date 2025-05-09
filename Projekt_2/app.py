@@ -197,7 +197,7 @@ scrollbar2.grid(column=0, row=10, columnspan=12, padx=10, pady=10)
 scrollbar2.grid_remove()
 
 labelVSTD = Label(root, text="", font=("Arial", 12), wraplength=1000, )  # Początkowo pusta
-labelVSTD.grid(column=0, row=6, padx=10, pady=10)
+labelVSTD.grid(column=0, row=7, padx=10, pady=10)
 labelVSTD.grid_remove()
 
 play_button = Button(root, text="Odtwórz audio", command=lambda: play_audio())

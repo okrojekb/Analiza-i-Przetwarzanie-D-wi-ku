@@ -41,7 +41,6 @@ def menu_function(fig, canvas, slider, function_nr, scrollbar, scrollbar2, slide
             scrollbar.grid_remove()
             scrollbar2.grid_remove()
         if function_nr == 2:
-            print("menu vol", type(fig))
             calculate_volume_and_plot(slider.get(), fig, canvas)
         elif function_nr == 3:
             calculate_STE_and_plot(slider.get(), fig, canvas)
@@ -68,17 +67,21 @@ def menu_function(fig, canvas, slider, function_nr, scrollbar, scrollbar2, slide
         canvas_widget.grid_remove()
         slider.grid()
         if function_nr == 8:
+            scrollbar2.grid_remove()
             calculate_VSTD(slider.get(), label)
         elif function_nr == 9:
+            scrollbar2.grid_remove()
+
             slider2.grid()
             slider2.set(50)
             slider2.configure(to=slider.get() // 2, from_=1, label="segment size")
             calculate_LSTER(slider.get(), label, slider2.get())
         elif function_nr == 10:
+            scrollbar2.grid_remove()
+
             calculate_klip_ZCR(slider.get(), label)
     elif function_nr == 11:
         play_audio()
-    ## projekt 2
     elif function_nr == 20:
         rbtn1.grid()
         rbtn2.grid()
@@ -88,20 +91,12 @@ def menu_function(fig, canvas, slider, function_nr, scrollbar, scrollbar2, slide
 
         max_scroll = (len(audio_data) - slider2.get()) // slider.get()
         scrollbar2.configure(to=max_scroll)
-        print("menu max: ", max_scroll)
         scrollbar2.set(0)
-        # scrollbar2.config(from_=0, to = max(audio_data))
         scrollbar2.grid()
         slider2.config(from_=1, to=len(audio_data), label="wielkość próbki do fft")
         slider2.set(20000)
-        print("zakres, pop  ", len(audio_data))
-        print("wartość slider   ", slider2.get())
         slider2.grid()
-        print("menu", type(fig))
         calc_show_freq(fig, canvas, v, 0, slider2.get())
-    # elif function_nr == 19:
-    #     calc_show_freq(fig, canvas, 0, len(audio_data))
-
     elif function_nr > 20:
         rbtn1.grid()
         rbtn2.grid()
@@ -137,8 +132,6 @@ def menu_function(fig, canvas, slider, function_nr, scrollbar, scrollbar2, slide
             calculate_spectral_flatness_and_plot(slider.get(), fig, canvas, v)
         elif function_nr == 27:
             calculate_spectral_crest_factor_and_plot(slider.get(), fig, canvas, v)
-    #
-    # #
     else:
         if len(audio_data) > 80000:
             max_scroll = (len(audio_data) - 80000) // slider.get()
@@ -173,6 +166,7 @@ def menu_function(fig, canvas, slider, function_nr, scrollbar, scrollbar2, slide
             differentiate(slider.get(), fig, canvas)
 
 
+
 def plot_audio_waveform(sample_rate, audio_data, fig, canvas, start_idx=0, max_points=20000):
     end_idx = min(start_idx + max_points, len(audio_data))
     visible_audio = audio_data[start_idx:end_idx]
@@ -203,8 +197,6 @@ def load_audio(fig, canvas, scrollbar, scrollbar2):
             sample_rate, audio_data = wavfile.read(filepath)
             if len(audio_data.shape) == 2:
                 audio_data = np.mean(audio_data, axis=1).astype(np.int16)
-            print(f"Częstotliwość próbkowania: {sample_rate} Hz")
-            print(f"Długość danych audio: {len(audio_data)} próbek")
             if len(audio_data) > 20000:
                 max_scroll = (len(audio_data) - 20000) // 200
                 scrollbar.configure(to=max_scroll)
@@ -216,7 +208,6 @@ def load_audio(fig, canvas, scrollbar, scrollbar2):
             plot_audio_waveform(sample_rate, audio_data, fig, canvas)
 
         except Exception as e:
-            print(f"Wystąpił błąd: {e}")
             return None, None
 
 
@@ -224,20 +215,18 @@ def play_audio():
     global sample_rate, audio_data
 
     if audio_data is None or sample_rate is None:
-        print("Brak danych audio do odtworzenia.")
         return
     try:
         sd.play(audio_data, samplerate=sample_rate)
         sd.wait()
     except Exception as e:
-        print(f"Wystąpił błąd podczas odtwarzania dźwięku: {e}")
+        pass
 
 
 def calculate_volume_and_plot(frame_size, fig, canvas, start_idx=0, max_points=20000):
     global func_nr
     func_nr = 2
 
-    print("vol", type(fig))
     end_idx = min(start_idx + max_points, len(audio_data))
     visible_audio = audio_data[start_idx:end_idx]
     time = [i / sample_rate for i in range(start_idx, end_idx)]
@@ -320,9 +309,7 @@ def calculate_ZCR_and_plot(frame_size, fig, canvas, start_idx=0, max_points=2000
         zcr_time.append(frame_start / sample_rate)
     fig.clear()
     ax = fig.add_subplot(111)
-
     ax.plot(zcr_time, zcr, label='Zero Crossing Rate (ZCR)', color='red', linewidth=2)
-
     ax.set_title("Zero Crossing Rate (ZCR)")
     ax.set_xlabel("Czas [s]")
     ax.set_ylabel("ZCR")
@@ -510,7 +497,6 @@ def calculate_f0_autocorrelation(frame_size, fig, canvas, start_idx=0, max_point
 def calculate_f0_AMDF(frame_size, fig, canvas, start_idx=0, max_points=20000):
     global func_nr
     func_nr = 7
-
     end_idx = min(start_idx + max_points, len(audio_data))
     visible_audio = audio_data[start_idx:end_idx]
     visible_num_frames = len(visible_audio) // frame_size
@@ -631,7 +617,6 @@ def calculate_VSTD(frame_size, label):
 
     label.grid()
 
-
 def compute_entropy(frame_size, segment_size, audio_data):
     num_frames = len(audio_data) // frame_size
     entropies = []
@@ -647,9 +632,7 @@ def compute_entropy(frame_size, segment_size, audio_data):
             segment_energies.append(energy)
 
         total_energy = sum(segment_energies)
-        normalized_energies = [energy / total_energy for energy in segment_energies] if total_energy != 0 else [
-                                                                                                                   0] * len(
-            segment_energies)
+        normalized_energies = [energy / total_energy for energy in segment_energies] if total_energy != 0 else [0] * len(segment_energies)
 
         entropy = -sum(e * math.log2(e) for e in normalized_energies if e > 0)
         entropies.append(entropy)
@@ -688,8 +671,7 @@ def calculate_LSTER(frame_size, label, segment_size):
             continue
 
         av_ste = sum(window_ste) / len(window_ste)
-        low_energy_frames = (sum(signum(0.5 * av_ste - window_ste[x]) + 1 for x in range(len(window_ste)))) / (
-                2 * len(window_ste))
+        low_energy_frames = (sum(signum(0.5 * av_ste - window_ste[x]) + 1 for x in range(len(window_ste)))) / (2 * len(window_ste))
 
         lster_per_window.append(low_energy_frames)
 
@@ -730,8 +712,6 @@ def calculate_EE(frame, segment_size, audio_data_sk):
 
     entropy = -sum(e * math.log2(e) for e in ste if e > 0)
     return entropy
-
-
 def calculate_energy_entropy(ste_values):
     total_energy = sum(ste_values)
     if total_energy > 0:
@@ -752,8 +732,6 @@ def std(values, avg):
 def calculate_klip_ZCR(frame_size, label):
     global func_nr
     func_nr = 10
-
-    # Obliczenie liczby ramek w oknie 1s
     frames_per_window = sample_rate // frame_size
     num_frames = len(audio_data) // frame_size
     zcr_values = []
@@ -811,8 +789,7 @@ def calculate_lster(window, frame_size):
         av_ste = ste[0]
     else:
         av_ste = sum(ste) / len(ste)
-    LSTER = (sum(signum(0.5 * av_ste - ste[x]) + 1 for x in range(len(ste)))) / (
-            2 * len(ste))
+    LSTER = (sum(signum(0.5 * av_ste - ste[x]) + 1 for x in range(len(ste)))) / (2 * len(ste))
 
     return LSTER
 
@@ -897,15 +874,10 @@ def differentiate(frame_size, fig, canvas, start_idx=0, max_points=176400):
     ax.legend()
     fig.tight_layout()
     canvas.draw()
-
-
 def button_function(fig, canvas, slider, scroll, scroll2, slider2, slider3,
                     labelVSTD, canvas_widget2, rbtn1, rbtn2, rbtn3, rbtn4, rbtn5, v, fig1, canvas1, canvas_widget):
     if func_nr == 20:
-        print("slid, slid val:  ", slider2.get())
-        print("slid freq", type(fig))
         max_scroll = (len(audio_data) - slider2.get()) // slider.get()
-        print("max_scroll   ,    slider2:   ", max_scroll, slider2.get())
         scroll2.configure(to=max_scroll)
         calc_show_freq(fig, canvas, v, 0, slider2.get())
     elif func_nr == 21:
@@ -955,10 +927,7 @@ def slider_function(slider, fig, canvas, slider2, slider3, label, scroll2, scrol
     elif func_nr == 14:
         differentiate(slider.get(), fig, canvas)
     elif func_nr == 20:
-        print("slid, slid val:  ", slider2.get())
-        print("slid freq", type(fig))
         max_scroll = (len(audio_data) - slider2.get()) // slider.get()
-        print("max_scroll   ,    slider2:   ", max_scroll, slider2.get())
         scroll2.configure(to=max_scroll)
         calc_show_freq(fig, canvas, v, 0, slider2.get())
     elif func_nr == 21:
@@ -968,8 +937,7 @@ def slider_function(slider, fig, canvas, slider2, slider3, label, scroll2, scrol
     elif func_nr == 23:
         calculate_effective_bandwidth_and_plot(slider.get(), fig, canvas, v)
     elif func_nr == 24:
-        print("slid   f0", slider2.get(), "f1", slider3.get())
-        calculate_band_energy_and_plot(frame_size=slider.get(),fig= fig, canvas=canvas, f_low=slider2.get(), f_high=slider3.get(), v=v)
+        calculate_band_energy_and_plot(frame_size=slider.get(), fig=fig, canvas=canvas, f_low=slider2.get(), f_high=slider3.get(), v=v)
     elif func_nr == 25:
         calculate_ersb_and_plot(slider.get(), fig, canvas, v)
     elif func_nr == 26:
@@ -1035,11 +1003,9 @@ def scroll_function(fig, canvas, position, slider, slider2, slider3, scrollbar, 
                     differentiate(slider.get(), fig, canvas, start_idx=start_idx)
 
             elif func_nr == 20:
-
-                calc_show_freq(fig, canvas, start_idx, slider2.get(), v)
+                calc_show_freq(fig, canvas,v, start_idx, slider2.get())
 
             elif func_nr == 19:
-                print("scroll: ", scrollbar2.get())
                 plot_window_effect(fig1, canvas1, fig2, canvas2, slider.get(), scrollbar, scrollbar2, slider2,
                                    canvas_widget, rbtn1, rbtn2, rbtn3, rbtn4, rbtn5, v)
             elif func_nr == 21:
@@ -1060,24 +1026,18 @@ def scroll_function(fig, canvas, position, slider, slider2, slider3, scrollbar, 
 
 def calc_show_freq(fig, canvas, v, start_idx=0, max_points=20000):
     global func_nr
-    print("freq", type(fig))
     func_nr = 20
-    print("freq, długoź audio  ", len(audio_data))
     end_idx = min(start_idx + max_points, len(audio_data))
-    print("starr", start_idx, "end ", end_idx, "diff: ", end_idx - start_idx)
     visible_audio = np.array(audio_data[start_idx:end_idx])
 
     if len(visible_audio) == 0:
-        print("0")
         return
-    # FFT i częstotliwości
     windowed_audio = apply_window(size=len(visible_audio), window_type=v, signal=visible_audio)
 
     freq_domain = np.fft.fft(visible_audio)
     freq = np.fft.fftfreq(len(visible_audio), 1 / sample_rate)
     magnitude = np.abs(freq_domain)
 
-    # Wykres FFT
     fig.clear()
     ax = fig.add_subplot(111)
     half = len(freq) // 2
@@ -1088,7 +1048,7 @@ def calc_show_freq(fig, canvas, v, start_idx=0, max_points=20000):
     ax.grid(True)
 
     num_peaks = 5
-    peak_indices = np.argsort(magnitude[:half])[-num_peaks:]  # tylko pierwsza połowa FFT
+    peak_indices = np.argsort(magnitude[:half])[-num_peaks:]
 
     for idx in peak_indices:
         f = freq[idx]
@@ -1100,7 +1060,7 @@ def calc_show_freq(fig, canvas, v, start_idx=0, max_points=20000):
 
 def calculate_volume_freq_and_plot(frame_size, fig, canvas, v, start_idx=0, max_points=20000):
     global func_nr
-    func_nr = 21  # albo inny numer, który przypiszesz tej funkcji w swoim systemie
+    func_nr = 21
 
     end_idx = min(start_idx + max_points, len(audio_data))
     visible_audio = audio_data[start_idx:end_idx]
@@ -1115,21 +1075,16 @@ def calculate_volume_freq_and_plot(frame_size, fig, canvas, v, start_idx=0, max_
         frame = np.array(audio_data[frame_start:frame_end])
 
         if len(frame) < frame_size:
-            continue  # pomiń niepełne ramki
+            continue
 
-        # okno Hanninga
         windowed = apply_window(size=len(frame), window_type=v, signal=frame)
 
-        # windowed = frame * np.hanning(len(frame))
-
-        # FFT i moc widma
         spectrum = np.fft.fft(windowed)
         magnitude_squared = np.abs(spectrum) ** 2
         avg_energy = np.sum(magnitude_squared) / frame_size
 
         volume.append(avg_energy)
         volume_time.append(frame_start / sample_rate)
-    # Rysowanie
     fig.clear()
     ax = fig.add_subplot(111)
     ax.plot(volume_time, volume, label='Głośność (FFT)', color='orange', linewidth=2)
@@ -1142,10 +1097,9 @@ def calculate_volume_freq_and_plot(frame_size, fig, canvas, v, start_idx=0, max_
     fig.tight_layout()
     canvas.draw()
 
-
 def calculate_frequency_centroid_and_plot(frame_size, fig, canvas, v, start_idx=0, max_points=20000):
     global func_nr
-    func_nr = 22  # dowolny numer funkcji w twoim systemie
+    func_nr = 22
 
     end_idx = min(start_idx + max_points, len(audio_data))
     visible_audio = audio_data[start_idx:end_idx]
@@ -1164,7 +1118,6 @@ def calculate_frequency_centroid_and_plot(frame_size, fig, canvas, v, start_idx=
 
         windowed = apply_window(len(frame), v, frame)
 
-        # windowed = frame * np.hanning(len(frame))
         spectrum = np.fft.fft(windowed)
         magnitude = np.abs(spectrum[:len(spectrum) // 2])
         freqs = np.fft.fftfreq(len(spectrum), d=1 / sample_rate)[:len(spectrum) // 2]
@@ -1176,7 +1129,7 @@ def calculate_frequency_centroid_and_plot(frame_size, fig, canvas, v, start_idx=
 
         fc.append(centroid)
         fc_time.append(frame_start / sample_rate)
-    # Rysowanie
+
     fig.clear()
     ax = fig.add_subplot(111)
     ax.plot(fc_time, fc, label='Frequency Centroid (FC)', color='purple', linewidth=2)
@@ -1192,7 +1145,7 @@ def calculate_frequency_centroid_and_plot(frame_size, fig, canvas, v, start_idx=
 
 def calculate_effective_bandwidth_and_plot(frame_size, fig, canvas, v, start_idx=0, max_points=20000):
     global func_nr
-    func_nr = 23  # lub inny numer przypisany tej funkcji
+    func_nr = 23
 
     end_idx = min(start_idx + max_points, len(audio_data))
     visible_audio = audio_data[start_idx:end_idx]
@@ -1209,8 +1162,6 @@ def calculate_effective_bandwidth_and_plot(frame_size, fig, canvas, v, start_idx
         if len(frame) < frame_size:
             continue
 
-        # Okno Hanninga
-        # windowed = frame * np.hanning(len(frame))
         windowed = apply_window(len(frame), v, frame)
 
         spectrum = np.fft.fft(windowed)
@@ -1221,17 +1172,13 @@ def calculate_effective_bandwidth_and_plot(frame_size, fig, canvas, v, start_idx
             centroid = 0
             bandwidth = 0
         else:
-            # Centroid
             centroid = np.sum(freqs * magnitude) / np.sum(magnitude)
-
-            # Effective Bandwidth
             variance = np.sum(((freqs - centroid) ** 2) * magnitude) / np.sum(magnitude)
             bandwidth = np.sqrt(variance)
 
         bw.append(bandwidth)
         bw_time.append(frame_start / sample_rate)
 
-    # Rysowanie
     fig.clear()
     ax = fig.add_subplot(111)
     ax.plot(bw_time, bw, label='Effective Bandwidth (BW)', color='darkorange', linewidth=2)
@@ -1247,7 +1194,7 @@ def calculate_effective_bandwidth_and_plot(frame_size, fig, canvas, v, start_idx
 
 def calculate_band_energy_and_plot(frame_size, fig, canvas, f_low, f_high, v, start_idx=0, max_points=20000):
     global func_nr
-    func_nr = 24  # Dowolny unikalny numer
+    func_nr = 24
 
     end_idx = min(start_idx + max_points, len(audio_data))
     visible_audio = audio_data[start_idx:end_idx]
@@ -1264,40 +1211,34 @@ def calculate_band_energy_and_plot(frame_size, fig, canvas, f_low, f_high, v, st
         if len(frame) < frame_size:
             continue
 
-        # Okno Hanninga (rekomendowane)
         windowed = apply_window(len(frame), v, frame)
 
-        # windowed = frame * np.hanning(len(frame))
         spectrum = np.fft.fft(windowed)
-        magnitude = np.abs(spectrum[:len(spectrum) // 2])  # tylko dodatnie cz. FFT
+        magnitude = np.abs(spectrum[:len(spectrum) // 2])
         power_spectrum = magnitude ** 2
 
         freqs = np.fft.fftfreq(len(spectrum), d=1 / sample_rate)[:len(spectrum) // 2]
-        print("plot   f0", f_low, "f1", f_high)
-        # Indeksy pasma [f_low, f_high]
         band_mask = (freqs >= f_low) & (freqs <= f_high)
 
         band_energy = np.sum(power_spectrum[band_mask]) / frame_size
         be.append(band_energy)
         be_time.append(frame_start / sample_rate)
 
-    # Rysowanie
     fig.clear()
     ax = fig.add_subplot(111)
     ax.plot(be_time, be, label=f'Band Energy {f_low}-{f_high} Hz', color='darkgreen', linewidth=2)
     ax.set_title(f"Przebieg czasowy i Band Energy [{f_low}-{f_high} Hz]")
     ax.set_xlabel("Czas [s]")
-    ax.set_ylabel("Amplituda / Energia")
+    ax.set_ylabel("Energia")
     ax.grid(True)
     ax.set_ylim(min(be) * 0.9, max(be) * 1.1)
     ax.legend()
     fig.tight_layout()
     canvas.draw()
 
-
 def calculate_ersb_and_plot(frame_size, fig, canvas, v, start_idx=0, max_points=20000):
     global func_nr
-    func_nr = 25  # dowolny, unikalny numer funkcji
+    func_nr = 25
 
     end_idx = min(start_idx + max_points, len(audio_data))
     visible_audio = audio_data[start_idx:end_idx]
@@ -1314,10 +1255,8 @@ def calculate_ersb_and_plot(frame_size, fig, canvas, v, start_idx=0, max_points=
         if len(frame) < frame_size:
             continue
 
-        # Okno Hanninga dla lepszego FFT
         windowed = apply_window(len(frame), v, frame)
 
-        # windowed = frame * np.hanning(len(frame))
         spectrum = np.fft.fft(windowed)
         magnitude = np.abs(spectrum[:len(spectrum) // 2])
         power_spectrum = magnitude ** 2
@@ -1329,7 +1268,6 @@ def calculate_ersb_and_plot(frame_size, fig, canvas, v, start_idx=0, max_points=
             if sample_rate > 2 * 4400:
                 ersb4 = 0
         else:
-            # Maska subbandów
             mask1 = (freqs >= 0) & (freqs < 630)
             mask2 = (freqs >= 630) & (freqs < 1720)
             mask3 = (freqs >= 1720) & (freqs < 4400)
@@ -1339,7 +1277,7 @@ def calculate_ersb_and_plot(frame_size, fig, canvas, v, start_idx=0, max_points=
             ersb3 = np.sum(power_spectrum[mask3]) / total_energy
 
             if sample_rate > 2 * 4400:
-                mask4 = (freqs >= 4400) & (freqs <= 0.5 * sample_rate)  # nieużywane
+                mask4 = (freqs >= 4400) & (freqs <= 0.5 * sample_rate)
                 ersb4 = np.sum(power_spectrum[mask4]) / total_energy
 
         ersb1_list.append(ersb1)
@@ -1349,7 +1287,6 @@ def calculate_ersb_and_plot(frame_size, fig, canvas, v, start_idx=0, max_points=
             ersb4_list.append(ersb4)
         time_list.append(frame_start / sample_rate)
 
-    # Rysowanie
     fig.clear()
     ax = fig.add_subplot(111)
     ax.plot(time_list, ersb1_list, label="ERSB1 (0–630 Hz)", color='blue')
@@ -1369,7 +1306,7 @@ def calculate_ersb_and_plot(frame_size, fig, canvas, v, start_idx=0, max_points=
 
 def calculate_spectral_flatness_and_plot(frame_size, fig, canvas, v, start_idx=0, max_points=20000):
     global func_nr
-    func_nr = 26  # dowolny numer do identyfikacji
+    func_nr = 26
 
     end_idx = min(start_idx + max_points, len(audio_data))
     visible_audio = audio_data[start_idx:end_idx]
@@ -1385,16 +1322,11 @@ def calculate_spectral_flatness_and_plot(frame_size, fig, canvas, v, start_idx=0
         if len(frame) == 0:
             continue
 
-        # Okno Hanninga
         windowed = apply_window(len(frame), v, frame)
 
-        # windowed = frame * np.hanning(len(frame))
-
-        # FFT i widmo mocy
         spectrum = np.abs(np.fft.fft(windowed))[:len(frame) // 2]
-        power_spectrum = spectrum ** 2 + 1e-6  # zabezpieczenie przed zerem
+        power_spectrum = spectrum ** 2 + 1e-6
 
-        # Obliczenia SFM
         geo_mean = np.exp(np.mean(np.log(power_spectrum)))
         arith_mean = np.mean(power_spectrum)
 
@@ -1402,8 +1334,6 @@ def calculate_spectral_flatness_and_plot(frame_size, fig, canvas, v, start_idx=0
         sfm_list.append(sfm)
         time_list.append(frame_start / sample_rate)
 
-    # Rysowanie wykresu
-    # print(sfm_list)
     fig.clear()
     ax = fig.add_subplot(111)
     ax.plot(time_list, sfm_list, label="Spectral Flatness (SFM)", color="purple")
@@ -1419,7 +1349,7 @@ def calculate_spectral_flatness_and_plot(frame_size, fig, canvas, v, start_idx=0
 
 def calculate_spectral_crest_factor_and_plot(frame_size, fig, canvas, v, start_idx=0, max_points=20000):
     global func_nr
-    func_nr = 27  # dowolny unikalny numer funkcji
+    func_nr = 27
 
     end_idx = min(start_idx + max_points, len(audio_data))
     visible_audio = audio_data[start_idx:end_idx]
@@ -1435,21 +1365,15 @@ def calculate_spectral_crest_factor_and_plot(frame_size, fig, canvas, v, start_i
         if len(frame) < frame_size:
             continue
 
-        # Okno Hann'a dla lepszego widma
-        # window = np.hanning(len(frame))
-        # frame = frame * window
         frame = apply_window(len(frame), v, frame)
 
-        # FFT i moc widma
         spectrum = np.fft.fft(frame)[:len(frame) // 2]
         power_spectrum = np.abs(spectrum) ** 2 + 1e-10
 
-        # Spectral Crest Factor: max(PSD) / mean(PSD)
         crest = np.max(power_spectrum) / np.mean(power_spectrum)
         scf_list.append(crest)
         scf_time.append(frame_start / sample_rate)
 
-    # Wykres
     fig.clear()
     ax = fig.add_subplot(111)
     ax.plot(scf_time, scf_list, label='Spectral Crest Factor (SCF)', color='orange', linewidth=2)
@@ -1460,8 +1384,6 @@ def calculate_spectral_crest_factor_and_plot(frame_size, fig, canvas, v, start_i
     ax.legend()
     fig.tight_layout()
     canvas.draw()
-
-
 def plot_window_effect(fig1, canvas1, fig2, canvas2, frame_size, scrollbar, scrollbar2, slider2, canvas_widget, rbtn1,
                        rbtn2, rbtn3, rbtn4, rbtn5, v):
     global func_nr
@@ -1471,11 +1393,10 @@ def plot_window_effect(fig1, canvas1, fig2, canvas2, frame_size, scrollbar, scro
     rbtn3.grid()
     rbtn5.grid()
     rbtn4.grid()
-    func_nr = 19  # dowolny unikalny numer funkcji
+    func_nr = 19
     canvas_widget.grid()
     max_scroll = (len(audio_data) - slider2.get()) // frame_size
     scrollbar2.configure(to=max_scroll)
-    # scrollbar2.config(from_=0, to = max(audio_data))
     scrollbar2.grid()
     slider2.config(from_=1, to=len(audio_data), label="wielkość próbki do fft")
 
@@ -1483,33 +1404,24 @@ def plot_window_effect(fig1, canvas1, fig2, canvas2, frame_size, scrollbar, scro
     size = slider2.get()
 
     scrollbar.grid_remove()
-    # scrollbar2.grid_remove()
 
     start_idx = scrollbar2.get() * frame_size
     end_idx = min(start_idx + size, len(audio_data))
     signal_segment = np.array(audio_data[start_idx:end_idx])
 
-    # Wyrównanie długości do 'size' (na końcu sygnału)
     if len(signal_segment) < size:
         signal_segment = np.pad(signal_segment, (0, size - len(signal_segment)), mode='constant')
 
-    # Zastosowanie okna Hanninga na całym fragmencie
     windowed_signal = apply_window(size, v, signal_segment)
 
-    # window = np.hanning(size)
-    # windowed_signal = signal_segment * window
-
-    # Oś czasu
     time_axis = np.arange(size) / sample_rate
 
-    # FFT po okienkowaniu
     fft_result = np.fft.fft(windowed_signal)
     freq_axis = np.fft.fftfreq(size, d=1 / sample_rate)
     half_len = size // 2
     magnitude = np.abs(fft_result[:half_len])
     freq_axis = freq_axis[:half_len]
 
-    # === WYKRES CZASOWY (fig1, canvas1) ===
     fig1.clear()
     ax1 = fig1.add_subplot(111)
     ax1.plot(time_axis, signal_segment, label="Oryginalny sygnał", alpha=0.5)
@@ -1522,7 +1434,6 @@ def plot_window_effect(fig1, canvas1, fig2, canvas2, frame_size, scrollbar, scro
     fig1.tight_layout()
     canvas1.draw()
 
-    # === WYKRES CZĘSTOTLIWOŚCIOWY (fig2, canvas2) ===
     fig2.clear()
     ax2 = fig2.add_subplot(111)
     ax2.plot(freq_axis, magnitude, color='green')
@@ -1533,7 +1444,7 @@ def plot_window_effect(fig1, canvas1, fig2, canvas2, frame_size, scrollbar, scro
     num_peaks = 5
     half = len(magnitude) // 2
     peak_indices = np.argsort(magnitude[:half])[-num_peaks:]
-    peak_indices = sorted(peak_indices)  # sortujemy po częstotliwości
+    peak_indices = sorted(peak_indices)
 
     for idx in peak_indices:
         f = freq_axis[idx]
@@ -1544,34 +1455,20 @@ def plot_window_effect(fig1, canvas1, fig2, canvas2, frame_size, scrollbar, scro
 
 
 def apply_window(size, window_type, signal):
-    print(window_type)
-    """
-    Zastosuj wybrane okno do sygnału.
-
-    Parameters:
-        size (int): długość okna
-        window_type (int): numer typu okna (1–5)
-        signal (np.ndarray): sygnał wejściowy
-
-    Returns:
-        windowed_signal (np.ndarray): sygnał po przemnożeniu przez okno
-    """
 
     if len(signal) < size:
-        # Uzupełniamy zerami jeśli sygnał krótszy niż okno
         signal = np.pad(signal, (0, size - len(signal)), mode='constant')
     else:
-        signal = signal[:size]  # Przycinamy jeśli sygnał dłuższy
+        signal = signal[:size]
 
-    # Wybór odpowiedniego okna
     if window_type == 1:
-        window = np.ones(size)  # okno prostokątne
+        window = np.ones(size)
     elif window_type == 2:
-        window = 1 - np.abs((np.arange(size) - (size - 1) / 2) / ((size + 1) / 2))  # trójkątne
+        window = 1 - np.abs((np.arange(size) - (size - 1) / 2) / ((size + 1) / 2))
     elif window_type == 3:
         window = np.hamming(size)
     elif window_type == 4:
-        window = np.hanning(size)  # van Hann (czyli Hanning)
+        window = np.hanning(size)
     elif window_type == 5:
         window = np.blackman(size)
     else:
